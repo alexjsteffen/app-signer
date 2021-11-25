@@ -40,6 +40,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
     var shouldSkipGetTaskAllow: Bool!
 
     //MARK: Constants
+    let adHocSigningCertificateName = "Sign to Run Locally"
     let signableExtensions = ["dylib","so","0","vis","pvr","framework","appex","app"]
     @objc let defaults = UserDefaults()
     @objc let fileManager = FileManager.default
@@ -268,6 +269,9 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
                 output.append(rawResult[index+1])
             }
         }
+        
+        output.append(adHocSigningCertificateName)
+        
         return output.sorted()
     }
     
@@ -498,12 +502,20 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         default:
             filePath = file
         }
+        
+        // Codesign identity for 'Sign to Run Locally' is a hyphen
+        var finalCertificate = certificate
+        
+        if finalCertificate == adHocSigningCertificateName {
+            finalCertificate = "-"
+        }
+        
 
         if let beforeFunc = before {
-            beforeFunc(file, certificate, entitlements)
+            beforeFunc(file, finalCertificate, entitlements)
         }
 
-        var arguments = ["-f", "-s", certificate]
+        var arguments = ["-f", "-s", finalCertificate]
         if needEntitlements {
             arguments += ["--entitlements", entitlements!]
         }
@@ -515,7 +527,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         }
         
         if let afterFunc = after {
-            afterFunc(file, certificate, entitlements, codesignTask)
+            afterFunc(file, finalCertificate, entitlements, codesignTask)
         }
         return codesignTask
     }
