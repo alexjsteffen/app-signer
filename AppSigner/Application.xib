@@ -217,7 +217,7 @@
                             <font key="font" metaFont="system"/>
                         </buttonCell>
                         <connections>
-                            <action selector="doBrowse:" target="se5-gp-TjO" id="ORw-wR-urv"/>
+                            <action selector="doBrowseForInput:" target="se5-gp-TjO" id="OhZ-vt-Er9"/>
                         </connections>
                     </button>
                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bgO-qX-afR">
