@@ -25,6 +25,8 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
     @IBOutlet var appVersion: NSTextField!
     @IBOutlet var ignorePluginsCheckbox: NSButton!
     @IBOutlet var noGetTaskAllowCheckbox: NSButton!
+    @IBOutlet var EntitlementsFileText: NSTextField!
+    @IBOutlet var EntitlementsBrowseButton: NSButton!
 
     
     //MARK: Variables
@@ -60,6 +62,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
     static let urlFileTypes = ["ipa", "deb"]
     static let allowedFileTypes = urlFileTypes + ["app", "appex", "xcarchive"]
     static let fileTypes = allowedFileTypes + ["mobileprovision"]
+    static let allowedEntitlementsFiles = ["entitlements"]
     @objc var fileTypeIsOk = false
     
     @objc func fileDropped(_ filename: String){
@@ -326,6 +329,11 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
                     NewApplicationIDTextField.isEnabled = true
                 }
             }
+            
+            EntitlementsFileText.isEnabled = false
+            EntitlementsFileText.stringValue = ""
+            EntitlementsBrowseButton.isEnabled = false
+            
         } else {
             ProvisioningProfilesPopup.selectItem(at: 0)
             setStatus("Invalid provisioning profile")
@@ -585,6 +593,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         var newDisplayName : String = ""
         var newShortVersion : String = ""
         var newVersion : String = ""
+        var entitlementsPlist: String = ""
 
         DispatchQueue.main.sync {
             downloadProgress.isHidden = true
@@ -594,6 +603,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
             newDisplayName = self.appDisplayName.stringValue.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             newShortVersion = self.appShortVersion.stringValue.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             newVersion = self.appVersion.stringValue.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            entitlementsPlist = self.EntitlementsFileText.stringValue
             shouldCheckPlugins = ignorePluginsCheckbox.state == .off
             shouldSkipGetTaskAllow = noGetTaskAllowCheckbox.state == .on
         }
@@ -625,6 +635,19 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
             return
         }
         
+        // Check if entitlements file exists
+        if entitlementsPlist.count > 0 && !fileManager.fileExists(atPath: entitlementsPlist, isDirectory: &inputIsDirectory){
+            DispatchQueue.main.async(execute: {
+                let alert = NSAlert()
+                alert.messageText = "Entitlements file not found"
+                alert.addButton(withTitle: "OK")
+                alert.informativeText = "The entitlements file \(entitlementsPlist) could not be found"
+                alert.runModal()
+                self.controlsEnabled(true)
+            })
+            return
+        }
+        
         //MARK: Create working temp folder
         var tempFolder: String! = nil
         if let tmpFolder = makeTempFolder() {
@@ -636,7 +659,10 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         let workingDirectory = tempFolder.stringByAppendingPathComponent("out")
         let eggDirectory = tempFolder.stringByAppendingPathComponent("eggs")
         let payloadDirectory = workingDirectory.stringByAppendingPathComponent("Payload/")
-        let entitlementsPlist = tempFolder.stringByAppendingPathComponent("entitlements.plist")
+        
+        if entitlementsPlist.count == 0 {
+            entitlementsPlist = tempFolder.stringByAppendingPathComponent("entitlements.plist")
+        }
         
         Log.write("Temp folder: \(tempFolder ?? "<none>")")
         Log.write("Working directory: \(workingDirectory)")
@@ -1119,6 +1145,12 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
                 NewApplicationIDTextField.stringValue = ""
             }
             
+            if EntitlementsFileText.isEnabled == false {
+                EntitlementsFileText.isEnabled = true
+                EntitlementsFileText.stringValue = ""
+                EntitlementsBrowseButton.isEnabled = true
+            }
+            
         case 1:
             let openDialog = NSOpenPanel()
             openDialog.canChooseFiles = true
@@ -1144,18 +1176,19 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         }
         
     }
-    @IBAction func doBrowse(_ sender: AnyObject) {
-        let openDialog = NSOpenPanel()
-        openDialog.canChooseFiles = true
-        openDialog.canChooseDirectories = false
-        openDialog.allowsMultipleSelection = false
-        openDialog.allowsOtherFileTypes = false
-        openDialog.allowedFileTypes = MainView.allowedFileTypes + MainView.allowedFileTypes.map({ $0.uppercased() })
-        openDialog.runModal()
-        if let filename = openDialog.urls.first {
-            InputFileText.stringValue = filename.path
+    
+    @IBAction func doBrowseForInput(_ sender: AnyObject) {
+        if let file = browseForFile(ofType: MainView.allowedFileTypes + MainView.allowedFileTypes.map({ $0.uppercased() })) {
+            InputFileText.stringValue = file
         }
     }
+    
+    @IBAction func doBrowseForEntitlements(_ sender: AnyObject) {
+        if let file = browseForFile(ofType: MainView.allowedEntitlementsFiles) {
+            EntitlementsFileText.stringValue = file
+        }
+    }
+    
     @IBAction func chooseSigningCertificate(_ sender: NSPopUpButton) {
         Log.write("Set Codesigning Certificate Default to: \(sender.stringValue)")
         defaults.setValue(sender.selectedItem?.title, forKey: "signingCertificate")
@@ -1178,5 +1211,22 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         }
     }
     
+    //MARK: File Browsing
+    
+    private func browseForFile(ofType allowedTypes: [String]? = nil) -> String? {
+        let openDialog = NSOpenPanel()
+        openDialog.canChooseFiles = true
+        openDialog.canChooseDirectories = false
+        openDialog.allowsMultipleSelection = false
+        openDialog.allowsOtherFileTypes = false
+        openDialog.allowedFileTypes = allowedTypes
+        openDialog.runModal()
+        
+        if let filename = openDialog.urls.first {
+            return filename.path
+        }
+        
+        return nil
+    }
 }
 
