@@ -72,6 +72,11 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         case "mobileprovision":
             ProvisioningProfilesPopup.selectItem(at: 1)
             checkProfileID(ProvisioningProfile(filename: filename))
+        case let ext where MainView.allowedEntitlementsFiles.contains(ext):
+            ProvisioningProfilesPopup.selectItem(at: 0)
+            EntitlementsFileText.stringValue = filename
+            EntitlementsFileText.isEnabled = true
+            EntitlementsBrowseButton.isEnabled = true
         default:
             break
         }
@@ -123,7 +128,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
     @objc func checkExtension(_ drag: NSDraggingInfo) -> Bool {
         if let board = drag.draggingPasteboard.propertyList(forType: NSPasteboard.PasteboardType(rawValue: "NSFilenamesPboardType")) as? NSArray,
             let path = board[0] as? String {
-                return MainView.fileTypes.contains(path.pathExtension.lowercased())
+            return MainView.fileTypes.contains(path.pathExtension.lowercased()) || MainView.allowedEntitlementsFiles.contains(path.pathExtension.lowercased())
         }
         if let types = drag.draggingPasteboard.types {
             if types.contains(NSPasteboard.PasteboardType(rawValue: "NSURLPboardType")) {
