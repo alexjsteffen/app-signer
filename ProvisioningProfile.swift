@@ -61,7 +61,7 @@ struct ProvisioningProfile {
          let rawXML: String
          if taskOutput.status == 0 {
             if let xmlIndex = taskOutput.output.range(of: "<?xml") {
-                rawXML = taskOutput.output.substring(from: xmlIndex.lowerBound)
+                rawXML = String(taskOutput.output[xmlIndex.lowerBound...])
             } else {
                 Log.write("Unable to find xml start tag in profile")
                 rawXML = taskOutput.output
@@ -79,8 +79,8 @@ struct ProvisioningProfile {
                         self.filename = filename
                         self.expires = expirationDate
                         self.created = creationDate
-                        self.appID = applicationIdentifier.substring(from: applicationIdentifier.index(periodIndex, offsetBy: 1))
-                        self.teamID = applicationIdentifier.substring(to: periodIndex)
+                        self.appID = String(applicationIdentifier[applicationIdentifier.index(periodIndex, offsetBy: 1)...])
+                        self.teamID = String(applicationIdentifier.substring(to: periodIndex))
                         self.name = name
                         self.entitlements = entitlements
                 } else {

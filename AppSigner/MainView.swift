@@ -261,7 +261,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         }
         let rawResult = securityResult.output.components(separatedBy: "\"")
         
-        var index: Int
+        var _: Int
         
         for index in stride(from: 0, through: rawResult.count - 2, by: 2) {
             if !(rawResult.count - 1 < index + 1) {
@@ -586,8 +586,8 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
             shouldSkipGetTaskAllow = noGetTaskAllowCheckbox.state == .on
         }
 
-        var provisioningFile = self.profileFilename
-        let inputStartsWithHTTP = inputFile.lowercased().substring(to: inputFile.index(inputFile.startIndex, offsetBy: 4)) == "http"
+        let provisioningFile = self.profileFilename
+        let inputStartsWithHTTP = inputFile.lowercased()[inputFile.index(inputFile.startIndex, offsetBy: 4)...] == "http"
         var eggCount: Int = 0
         var continueSigning: Bool? = nil
         
@@ -626,7 +626,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         let payloadDirectory = workingDirectory.stringByAppendingPathComponent("Payload/")
         let entitlementsPlist = tempFolder.stringByAppendingPathComponent("entitlements.plist")
         
-        Log.write("Temp folder: \(tempFolder)")
+        Log.write("Temp folder: \(tempFolder ?? "<none>")")
         Log.write("Working directory: \(workingDirectory)")
         Log.write("Payload directory: \(payloadDirectory)")
         
@@ -916,7 +916,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
 
                             let appexPlist = appexFile.stringByAppendingPathComponent("Info.plist")
                             if let appexBundleID = getPlistKey(appexPlist, keyName: "CFBundleIdentifier"){
-                                let newAppexID = "\(newApplicationID)\(appexBundleID.substring(from: oldAppID.endIndex))"
+                                let newAppexID = "\(newApplicationID)\(appexBundleID[oldAppID.endIndex...]))"
                                 setStatus("Changing \(appexFile) id to \(newAppexID)")
                                 _ = setPlistKey(appexPlist, keyName: "CFBundleIdentifier", value: newAppexID)
                             }
@@ -991,7 +991,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
                     })()
                     
                     func shortName(_ file: String, payloadDirectory: String)->String{
-                        return file.substring(from: payloadDirectory.endIndex)
+                        return String(file[payloadDirectory.endIndex...])
                     }
                     
                     func beforeFunc(_ file: String, certificate: String, entitlements: String?){
@@ -1018,7 +1018,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
                     eggCount += 1
                     
                     let currentEggPath = eggDirectory.stringByAppendingPathComponent("egg\(eggCount)")
-                    let shortName = eggFile.substring(from: payloadDirectory.endIndex)
+                    let shortName = String(eggFile[payloadDirectory.endIndex...])
                     setStatus("Extracting \(shortName)")
                     if self.unzip(eggFile, outputPath: currentEggPath).status != 0 {
                         Log.write("Error extracting \(shortName)")

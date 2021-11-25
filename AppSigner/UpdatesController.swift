@@ -46,8 +46,7 @@ class UpdatesController: NSWindowController {
                         
                         let json = try JSONSerialization.jsonObject(with: data!, options:.allowFragments)
                         if let releases = json as? [[String: AnyObject]],
-                            let release = releases[0] as? [String: AnyObject],
-                            let name = release["name"] as? String {
+                            let name = releases[0]["name"] as? String {
                                 let prefs = UserDefaults.standard
                                 if let skipVersion = prefs.string(forKey: "skipVersion"){
                                     if skipVersion == name && forceShow == false {
@@ -126,7 +125,7 @@ class UpdatesController: NSWindowController {
     @objc func setChangelog(_ text: String){
         changelogText.isEditable = true
         changelogText.string = ""
-        changelogText.insertText(markdownParser.attributedString(fromMarkdownString: text))
+        changelogText.insertText(markdownParser.attributedString(fromMarkdownString: text) ?? "A parsing error occurred")
         changelogText.isEditable = false
     }
     
