@@ -465,6 +465,35 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         return dictionary?[keyName] as? String
     }
     
+    @objc func getEntitlementsFromBinary(_ url: URL) -> NSMutableDictionary? {
+        var code: SecStaticCode?
+        var result: OSStatus
+        
+        result = SecStaticCodeCreateWithPath(url as CFURL, [], &code)
+        if (result != noErr || code == nil) {
+            Log.write("Unable to create SecStaticCode for binary at \(url.path)")
+            return nil
+        }
+        
+        var information: CFDictionary?
+        result = SecCodeCopySigningInformation(code!, [], &information)
+        if (result != noErr) {
+            Log.write("Unable to copy signing information from SecStaticCode")
+            return nil
+        }
+        
+        guard let information = information else {
+            Log.write("Signing information dictionary for binary at \(url.path) was nil, could not retrieve entitlements")
+            return nil
+        }
+
+        if let entitlementsDict = (information as NSDictionary)[kSecCodeInfoEntitlementsDict] as? NSDictionary, entitlementsDict.count > 0 {
+            return entitlementsDict.mutableCopy() as? NSMutableDictionary
+        }
+
+        return nil
+    }
+    
     func setPlistKey(_ plist: String, keyName: String, value: String)->AppSignerTaskOutput {
         return Process().execute(defaultsPath, workingDirectory: nil, arguments: ["write", plist, keyName, value])
     }
@@ -504,6 +533,8 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
     func codeSign(_ file: String, certificate: String, entitlements: String?,before:((_ file: String, _ certificate: String, _ entitlements: String?)->Void)?, after: ((_ file: String, _ certificate: String, _ entitlements: String?, _ codesignTask: AppSignerTaskOutput)->Void)?)->AppSignerTaskOutput{
 
         var needEntitlements: Bool = false
+        var removeEntitlementsFileOnCompletion: Bool = false
+        
         let filePath: String
         switch file.pathExtension.lowercased() {
         case "framework":
@@ -530,6 +561,31 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
             finalCertificate = "-"
         }
         
+        // Check if we should extract entitlements from the binary
+        // Do this if we don't have any custom entitlements specified at all
+        
+        let binaryURL = URL(fileURLWithPath: file)
+        if !needEntitlements {
+            // Write the entitlements to the file
+            if let entitlementsFromBinary = getEntitlementsFromBinary(binaryURL) {
+                Log.write("Attempting to derive entitlements from '\(file)' because we are currently signing without any")
+                if let entitlementsPath = entitlements, !fileManager.fileExists(atPath: entitlementsPath) {
+                    Log.write("Fetched \(entitlementsFromBinary.count) existing entitlement(s) from '\(file)'")
+                    
+                    if shouldSkipGetTaskAllow {
+                        Log.write("Removing get-task-allow from derived entitlements if present")
+                        entitlementsFromBinary.removeObject(forKey: "get-task-allow")
+                    }
+                    
+                    if entitlementsFromBinary.write(toFile: entitlementsPath, atomically: false) {
+                        removeEntitlementsFileOnCompletion = true
+                        needEntitlements = true
+                    } else {
+                        Log.write("Failed to write binary's entitlements to file")
+                    }
+                }
+            }
+        }
 
         if let beforeFunc = before {
             beforeFunc(file, finalCertificate, entitlements)
@@ -549,6 +605,16 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
         if let afterFunc = after {
             afterFunc(file, finalCertificate, entitlements, codesignTask)
         }
+        
+        if removeEntitlementsFileOnCompletion, let entitlementsPath = entitlements, fileManager.fileExists(atPath: entitlementsPath) {
+            do {
+                try fileManager.removeItem(atPath: entitlementsPath)
+                Log.write("Removed derived entitlements file")
+            } catch let error as NSError {
+                Log.write("Unable to remove derived entitlements file for '\(file)' after codesign: \(error.localizedDescription)")
+            }
+        }
+        
         return codesignTask
     }
     func testSigning(_ certificate: String, tempFolder: String )->Bool? {
