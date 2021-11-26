@@ -35,6 +35,7 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
     @objc var profileFilename: String?
     @objc var ReEnableNewApplicationID = false
     @objc var PreviousNewApplicationID = ""
+    @objc var ReEnableEntitlements = false
     @objc var outputFile: String?
     var startSize: CGFloat?
     @objc var NibLoaded = false
@@ -363,10 +364,14 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
                 NewApplicationIDTextField.stringValue = PreviousNewApplicationID
                 StartButton.isEnabled = true
                 appDisplayName.isEnabled = true
+                EntitlementsFileText.isEnabled = ReEnableEntitlements
+                EntitlementsBrowseButton.isEnabled = ReEnableEntitlements
             } else {
                 // Backup previous values
                 PreviousNewApplicationID = NewApplicationIDTextField.stringValue
                 ReEnableNewApplicationID = NewApplicationIDTextField.isEnabled
+                
+                ReEnableEntitlements = EntitlementsFileText.isEnabled
                 
                 InputFileText.isEnabled = false
                 BrowseButton.isEnabled = false
@@ -375,6 +380,8 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
                 NewApplicationIDTextField.isEnabled = false
                 StartButton.isEnabled = false
                 appDisplayName.isEnabled = false
+                EntitlementsFileText.isEnabled = false
+                EntitlementsBrowseButton.isEnabled = false
             }
         }
     }
