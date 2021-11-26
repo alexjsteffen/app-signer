@@ -1157,20 +1157,12 @@ class MainView: NSView, URLSessionDataDelegate, URLSessionDelegate, URLSessionDo
             }
             
         case 1:
-            let openDialog = NSOpenPanel()
-            openDialog.canChooseFiles = true
-            openDialog.canChooseDirectories = false
-            openDialog.allowsMultipleSelection = false
-            openDialog.allowsOtherFileTypes = false
-            openDialog.allowedFileTypes = ["mobileprovision"]
-            openDialog.runModal()
-            if let filename = openDialog.urls.first {
-                checkProfileID(ProvisioningProfile(filename: filename.path))
+            if let filename = browseForFile(ofType: ["mobileprovision"]) {
+                checkProfileID(ProvisioningProfile(filename: filename))
             } else {
                 sender.selectItem(at: 0)
                 chooseProvisioningProfile(sender)
             }
-            
         case 2:
             sender.selectItem(at: 0)
             chooseProvisioningProfile(sender)
