@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="19455" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="20037" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19455"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="20037"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -21,9 +21,9 @@
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
-                <menuItem title="iOS App Signer" id="1Xt-HY-uBw">
+                <menuItem title="App Signer" id="1Xt-HY-uBw">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="iOS App Signer" systemMenu="apple" id="uQy-DD-JDr">
+                    <menu key="submenu" title="App Signer" systemMenu="apple" userInterfaceLayoutDirection="leftToRight" id="uQy-DD-JDr">
                         <items>
                             <menuItem title="About iOS App Signer" id="5kV-Vb-QxS">
                                 <modifierMask key="keyEquivalentModifierMask"/>
@@ -161,11 +161,11 @@
             <windowCollectionBehavior key="collectionBehavior" fullScreenNone="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="196" y="240" width="550" height="280"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="2056" height="1291"/>
-            <value key="minSize" type="size" width="550" height="242"/>
-            <value key="maxSize" type="size" width="9999" height="242"/>
-            <view key="contentView" id="se5-gp-TjO" customClass="MainView" customModule="iOS_App_Signer" customModuleProvider="target">
-                <rect key="frame" x="0.0" y="0.0" width="550" height="284"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1440" height="875"/>
+            <value key="minSize" type="size" width="550" height="200"/>
+            <value key="maxSize" type="size" width="9999" height="300"/>
+            <view key="contentView" misplaced="YES" id="se5-gp-TjO" customClass="MainView" customModule="iOS_App_Signer" customModuleProvider="target">
+                <rect key="frame" x="0.0" y="0.0" width="550" height="280"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="YSK-IJ-CeM">

@@ -106,17 +106,21 @@ int markdownConsume(char* text, int token, yyscan_t scanner);
   _accum = [[NSMutableAttributedString alloc] init];
 
   const char* cstr = [string UTF8String];
-  FILE* markdownin = fmemopen((void *)cstr, [string lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
-
-  yyscan_t scanner;
-
-  markdownlex_init(&scanner);
-  markdownset_extra((__bridge void *)(self), scanner);
-  markdownset_in(markdownin, scanner);
-  markdownlex(scanner);
-  markdownlex_destroy(scanner);
-
-  fclose(markdownin);
+    if (@available(macOS 10.13, *)) {
+        FILE* markdownin = fmemopen((void *)cstr, [string lengthOfBytesUsingEncoding:NSUTF8StringEncoding], "r");
+        
+        yyscan_t scanner;
+        
+        markdownlex_init(&scanner);
+        markdownset_extra((__bridge void *)(self), scanner);
+        markdownset_in(markdownin, scanner);
+        markdownlex(scanner);
+        markdownlex_destroy(scanner);
+        
+        fclose(markdownin);
+    } else {
+        // Fallback on earlier versions
+    }
 
   if (_bulletStarts.count > 0) {
     // Treat nested bullet points as flat ones...
